@@ -1,0 +1,101 @@
+div{
+    font-size:18px;
+}
+div.circle{
+    width:5px;height:5px;
+    border-radius:99em;
+    display:inline-block;
+}
+#slider{
+    display:inline-block;
+}
+#circle_red{
+    background-color:rgb(255,63,0);
+}
+#circle_blue{
+    background-color:rgb(0,143,255);
+}
+#circle_green{
+    background-color:rgb(0,255,22);
+}
+#infohigh,#infopath12,#infopath34{
+    display:inline-block;
+    text-align:center;
+}
+ul{/*cancel the original style of the ul
+     && the padding style is determined the space around the text*/
+    margin:10px;
+    padding:0;
+    /*把图像设置为列表中的列表项目标记：*/
+    list-style:none;
+    font-size:0px;
+}
+ul.drop-down-menu {
+    /*set the border value 
+    solid 實心的*/
+    border: #ccc 1px solid;
+    /*the box-shadow Attributes set the shadow infor about the border*/
+    box-shadow: 6px 6px 5px #888888;
+    /*make the all select object inline and give the object a block
+      we can add the width && height for it */
+    display: inline-block;
+    font-family: 'Open Sans', Arial, sans-serif;
+}
+ul.drop-down-menu li {
+    position: relative;
+    /*cancel the wrap*/
+    white-space: nowrap;
+    border-right: #ccc 1px solid;
+    font-size: 15px;
+}
+ul.drop-down-menu > li:last-child {
+    border-right: none;
+}
+ul.drop-down-menu a {
+    background-color: #fff;
+    /* font color */
+    color: #333;
+    display: block;
+    padding: 0 30px;
+    /*cancel the original <a> have a overline decoration*/
+    text-decoration: none;
+    line-height: 40px;
+}
+ul.drop-down-menu a:hover { /* 滑鼠滑入按鈕變色*/
+    background-color: #ef5c28;
+    color: #fff;
+}
+ul.drop-down-menu li:hover > a { /* 滑鼠移入次選單上層按鈕保持變色*/
+    background-color: #ef5c28;
+    color: #fff;
+}
+ul.drop-down-menu > li {
+    float: left; 
+} 
+
+ul.drop-down-menu ul {
+    border: #ccc 1px solid;
+    position: absolute;
+    /* set a deep value z ， this let the item above the father item   */
+    z-index: 99;
+    left: -11px;
+    top: 77%;
+    min-width: 180px;
+    box-shadow: 6px 6px 5px #888888;
+}
+ul.drop-down-menu ul li {
+    border-bottom: #ccc 1px solid;
+}
+ul.drop-down-menu ul li:last-child {
+    border-bottom: none;
+}
+ul.drop-down-menu ul { /*隱藏次選單*/
+    display: none;
+}
+ul.drop-down-menu li:hover > ul { /* 滑鼠滑入展開次選單*/
+    display: list-item;
+}
+.slider_axis { font: 10px sans-serif; -webkit-user-select: none; -moz-user-select: none; user-select: none; }
+.slider_axis   .domain { fill: none; stroke: #000; stroke-opacity: .3; stroke-width: 10px; stroke-linecap: round; }
+.slider_axis   .halo   { fill: none; stroke: #ddd; stroke-width: 8px;  stroke-linecap: round; }
+.slider .handle { fill: #fff; stroke: #000; stroke-opacity: .5; stroke-width: 1.25px; pointer-events: none; }

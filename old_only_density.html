@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="parcoord.css" rel="stylesheet" type="text/css"/>
+</head>
+<body style="height:100%;margin:0%">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script>
+
+        var index = [-1,1,2,3,4];
+        var color = ["red","Green","Green","blue","blue"];
+
+        var blue_to_brown = d3.scaleLinear()
+          .domain(index)
+          .range(color)
+          .interpolate(d3.interpolateLab);
+          // interpolate 插值器 可以插值的对象包括整数，数组，颜色，字符串
+          /*
+          var i = d3.interpolateNumber(10, 20);
+          i(0.0); // 10 
+          i(0.2); // 12
+          i(0.5); // 15
+          i(1.0); // 20.
+          */
+        var number = 0 ;
+        var margin = {top: 70 , right: 40, bottom: 20, left: 80},
+            width = window.innerWidth *0.5,
+            //height = 500 - margin.top - margin.bottom;
+            height = window.innerHeight *0.8;
+            
+        var dimensions = [
+          {
+            name: "-10(min)",
+            //scale: d3.scale.linear().range([0, height]),
+            //^v3 
+            scale: d3.scaleLinear().range([height, 0]).domain([100,0]),
+            type: Number
+          },
+          {
+            name: "-5(min)",
+            //scale: d3.scale.linear().range([height, 0]),
+            //^v3 
+            scale: d3.scaleLinear().range([height, 0]),
+            type: Number
+          },
+          {
+            name: "Now",
+            //scale: d3.scale.sqrt().range([height, 0]),
+            //^v3 
+            scale: d3.scaleLinear().range([height, 0]),
+            type: Number
+          },
+          {
+            name: "5(min)",
+            //scale: d3.scale.linear().range([height, 0]),
+            //^v3
+            scale: d3.scaleLinear().range([height, 0]),
+            type: Number
+          },
+          {
+            name: "10(min)",
+            //scale: d3.scale.linear().range([height, 0]),
+            //^v3
+            scale: d3.scaleLinear().range([height, 0]),
+            type: Number
+          }, 
+          {
+            name: "15(min)",
+            //scale: d3.scale.linear().range([height, 0]),
+            //^v3
+            scale: d3.scaleLinear().range([height, 0]),
+            type: Number
+          }                   
+        ];
+        
+        var x = d3.scalePoint()
+            .domain(dimensions.map(function(d) { return d.name; }))
+            .range([0, width*0.8]);
+        //seperate the the column item 
+        //like a function , return the domain data in the range location 
+        
+        var line = d3.line()
+            .defined(function(d) { return !isNaN(d[1]); });
+        // isNaN() check the item if a number or not, if not a number return true
+
+        var yAxis = d3.axisLeft();
+        //set the axis orient
+        
+        var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+        var dimension = svg.selectAll(".dimension")
+            .data(dimensions)
+            .enter().append("g")
+            .attr("class", "dimension")
+            .attr("transform", function(d) { return "translate(" + x(d.name) + ")"; });
+        //draw the column item 
+        
+        d3.csv("density.csv", function(data) {
+
+          dimensions.forEach(function(dimension) {
+            //dimension.scale.domain(d3.extent(data, function(d) { return +d[dimension.name]; }));
+            dimension.scale.domain([0,100]);
+          });          
+          //set the dimensions domain 
+          svg.append("g")
+            .attr("class", "background")
+            .selectAll("path")
+            .data(data)
+            .style("stroke",function(d){
+              if( d['is_Plane'] == "True" )
+              {
+                return blue_to_brown(d['lane_amount']); 
+              }
+              else if(d['is_Plane'] == "False" )
+              {
+                return blue_to_brown(-1); 
+              }
+            }).style("stroke-width","2px")
+            .enter().append("path")
+            .attr("d", draw);
+        
+          svg.append("g")
+            .attr("class", "foreground")
+            .selectAll("path")
+            .data(data)
+            .enter().append("path")
+            .style("stroke",function(d){              
+            if( d['is_Plane'] == "True" )
+            {
+              return blue_to_brown(d['lane_amount']); 
+            }
+            else if(d['is_Plane'] == "False" )
+            {
+              return blue_to_brown(-1); 
+            }
+            }).style("stroke-width","2px")
+            .attr("d", draw);
+
+          dimension.append("g")
+              .attr("class", "axis")
+              .each(function(d) {d3.select(this).call(yAxis.scale(d.scale)); });
+
+          dimension.append("g")
+                  .attr("class", "title")
+                  .append("text")
+                  .attr("class", "title")
+                  .attr("text-anchor", "middle")
+                  .attr("y", -9)
+                  .text(function(d) { return d.name; });              
+        
+          // Rebind the axis data to simplify mouseover.
+          svg.select(".axis").selectAll("text:not(.title)")
+              .attr("class", "label")
+              .data(data, function(d) { return d.name || d; });
+        
+          var projection = svg.selectAll(".axis text,.background path,.foreground path")
+              .on("mouseover", mouseover)
+              .on("mouseout", mouseout);
+        
+          function mouseover(d) {
+            svg.classed("active", true);
+            projection.classed("inactive", function(p) {return p !== d; });
+            projection.filter(function(p) { return p === d; }).each(moveToFront).style("opacity",1);
+          }
+        
+          function mouseout(d) {
+            svg.classed("active", false);
+            projection.classed("inactive", false)
+            projection.filter(function(p) { return p === d; }).each(moveToFront).style("opacity",0.2);
+            //svg.selectAll("text").style("font","13px").style("opacity",1.0);
+          }
+        
+          function moveToFront() {
+            this.parentNode.appendChild(this);
+          }
+        });
+        
+        function draw(d) {
+          return line(dimensions.map(function(dimension) {
+            return [x(dimension.name), dimension.scale(d[dimension.name])];
+          }));
+        }
+        
+        </script>    
+</body>
+</html>
