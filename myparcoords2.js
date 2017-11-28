@@ -5,10 +5,9 @@ var red = d3.lab(58,71,71),
     blue = d3.lab(58,0,-66);
 var color = [red,green,green,blue,blue];
 var center = "VLPN800_0";
-var current_file,svg,projection,line,filter_num;
+var svg,projection,line;
 var dimensions,dimension,yAxis,x;
-var dataset={},
-    count = 0 ;
+var dataset={};
 show("speed.csv");
 var blue_to_brown = d3.scaleLinear()
 .domain(index)
@@ -24,14 +23,11 @@ i(1.0); // 20.
 */
 function show(filename)
 {
-    current_file = filename;
-    d3.selectAll("#main > *").remove();
+    d3.selectAll("svg > *").remove();
     var margin = {top: 0 , right: 40, bottom: 30, left: 80},
     width = window.innerWidth *0.5,
     //height = 500 - margin.top - margin.bottom;
     height = window.innerHeight*0.8;
-    console.log(width);
-    console.log(height);
     dimensions = [
         {
           name: "-10(min)",
@@ -98,7 +94,6 @@ function show(filename)
         .attr("class", "dimension")
         .attr("transform", function(d) { return "translate(" + x(d.name) + ")"; });
     document.getElementById("title").innerHTML=filename.split('.')[0];//split the string csv
-    
     d3.csv('/data/parcoords/data/'+filename, function(data) {
         //console.log(filename);
         var value;
@@ -107,7 +102,7 @@ function show(filename)
             var key = data[value].VD_Name;
             dataset[key] = data[value];
         }
-
+        console.log(dataset["VLPN800_0"]);
         var max = new Array(); ;
         dimensions.forEach(function(dimension) {
             max.push(d3.max(data, function(d) {return +d[dimension.name]; }));
@@ -153,8 +148,7 @@ function show(filename)
         dimension.append("g")
             .attr("class", "axis")
             .each(function(d) {d3.select(this).call(yAxis.scale(d.scale)); });
-        
-        //add the axis title
+
         dimension.append("g")
                 .attr("class", "title")
                 .append("text")
@@ -168,21 +162,18 @@ function show(filename)
                     .attr("class", "label")
                     .data(data, function(d) { return d.name || d; });
             
-        projection = svg.selectAll(".foreground path")
-                    .style("opacity",0.1)
+                projection = svg.selectAll(".axis text,.background path,.foreground path")
                     .on("mouseover", mouseover)
-                    .on("mouseout", mouseout)
-                    .on("click",click);
-    });   
+                    .on("mouseout", mouseout);
+    });       
 }
-
 function mouseover(d) {
     //console.log(d);
     svg.classed("active", true);
     projection.classed("inactive", function(p) {return p !== d; });
     projection.filter(function(p) { return p === d; }).each(moveToFront).style("opacity",1);
-    // center = d.VD_Name;
-    // newLocation();
+    center = d.VD_Name;
+    newLocation();
 }
     
 function mouseout(d) {
@@ -192,48 +183,22 @@ function mouseout(d) {
     //svg.selectAll("text").style("font","13px").style("opacity",1.0);
     markers[merge].setAnimation(null);
 }
-
-function click(d)
-{
-    markers[center].setAnimation(null);
-    center = d.VD_Name;
-    newLocation();
-}
     
 function moveToFront() {
-    this.parentNode.appendChild(this);
+        this.parentNode.appendChild(this);
 }
-
 function draw(d) {
     return line(dimensions.map(function(dimension) {return [x(dimension.name), dimension.scale(d[dimension.name])];}));
 }
-
 function map_highlight(d)
 {
     svg.classed("active", true);
     projection.classed("inactive", function(p) {return p !== dataset[d]; });
     projection.filter(function(p) { return p === dataset[d]; }).each(moveToFront).style("opacity",1);
 }
-
 function map_unhighlight(d)
 {
     svg.classed("active", false);
     projection.classed("inactive", false)
     projection.filter(function(p) { return p === dataset[d]; }).each(moveToFront).style("opacity",0.2);
 }
-
-function filter(filename,filter)
-{
-    d3.csv('/data/parcoords/data/'+filename, function(data) {
-        projection.filter(function(p) {
-            if( p.loss <= filter )
-                return p ; 
-        }).each(moveToFront).style("opacity",0.1);
-        projection.filter(function(p) {
-            if( p.loss > filter )
-                return p ; 
-        }).each(moveToFront).style("opacity",0);
-    });
-
-}
-
